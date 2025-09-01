@@ -7,7 +7,7 @@ export default function MenWallet(){
 
   useEffect(() => {
  
-    fetch("http://localhost:5000/api/products")
+    fetch("https://fabfind-fabselect-1-backend.onrender.com/api/products")
       .then((res) => res.json())
       .then((data) => {
         // Assuming your product schema has a `category` field
