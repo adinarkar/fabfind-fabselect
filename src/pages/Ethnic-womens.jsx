@@ -6,7 +6,7 @@ export default function Ethnic(){
 
   useEffect(() => {
     // Fetch all products and filter by category 'Men'
-    fetch("http://localhost:5000/api/products")
+    fetch("https://fabfind-fabselect-1-backend.onrender.com")
       .then((res) => res.json())
       .then((data) => {
         // Assuming your product schema has a `category` field
