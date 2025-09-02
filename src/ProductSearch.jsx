@@ -26,7 +26,9 @@ export default function ProductSearchPage() {
     setErr("");
     try {
       // This calls the Node route we set up earlier: /api/search -> runs newscrapper.py
-      const r = await fetch(`https://fabfind-fabselect-3.onrender.com/api/search?q=${encodeURIComponent(q)}`);
+      const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5001";
+      const r = await fetch(`${API_URL}/api/search?q=${encodeURIComponent(q)}`);
+
       const json = await r.json();
       if (!json.ok) throw new Error(json.error || "API error");
       const mapped = (json.data || []).map(toTabProduct);
