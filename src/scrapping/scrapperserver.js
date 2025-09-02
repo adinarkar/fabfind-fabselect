@@ -12,7 +12,7 @@ app.use(cors());
 
 // ---- CONFIG ----
 // Prefer env var; else fall back to your Python path
-const PY = process.env.PYTHON_EXE || "C:\\Python313\\python.exe";
+const PY = process.env.PYTHON_EXE || "python3";
 // Full absolute path to your Python script:
 const SCRIPT = path.resolve(__dirname, "newscrapper.py"); // adjust if script is elsewhere
 
@@ -45,17 +45,34 @@ app.get("/api/search", (req, res) => {
   const reply = (status, body) => { if (!replied) { replied = true; res.status(status).json(body); } };
 
   // Ensure we run in the script’s folder (safe with spaces in path)
-  const child = spawn(PY, args, { cwd: path.dirname(SCRIPT), windowsHide: true });
+  app.get("/api/py-check", (req, res) => {
+  let replied = false;
+  const reply = (status, body) => {
+    if (!replied) {
+      replied = true;
+      res.status(status).json(body);
+    }
+  };
+
+  // run `python3 --version`
+  const child = spawn(PY, ["--version"], {
+    cwd: path.dirname(SCRIPT),
+    windowsHide: true,
+    env: { ...process.env, PYTHONIOENCODING: "utf-8" }
+  });
 
   let out = "", err = "";
 
-  child.stdout.on("data", d => { out += d.toString(); });
-  child.stderr.on("data", d => { err += d.toString(); });
+  child.stdout.on("data", d => out += d.toString());
+  child.stderr.on("data", d => err += d.toString());
+  child.on("error", e =>
+    reply(500, { ok: false, error: "Failed to start Python", detail: e.message, py: PY })
+  );
+  child.on("close", code =>
+    reply(200, { ok: code === 0, code, out: out.trim(), err: err.trim() })
+  );
+});
 
-  child.on("error", (e) => {
-    // Happens if Python path is wrong or lacks permission
-    reply(500, { ok: false, error: "Failed to start Python", detail: e.message, py: PY, script: SCRIPT });
-  });
 
   // Safety timeout (kill runaway process)
   const killTimer = setTimeout(() => {
