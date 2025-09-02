@@ -10,6 +10,11 @@ const path = require("path");
 const app = express();
 app.use(cors());
 
+export const API_URL =
+  process.env.REACT_APP_API_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:5001";
+
 // ---- CONFIG ----
 // Prefer env var; else fall back to system python3
 const PY = process.env.PYTHON_EXE || "python3";
