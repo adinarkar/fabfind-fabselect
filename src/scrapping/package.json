@@ -5,10 +5,10 @@
   "main": "scrapperserver.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
-    "start":""
+    "start":"node scrapperserver.js"
   },
   "keywords": [],
-  "author": "node scrapperserver.js",
+  "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
