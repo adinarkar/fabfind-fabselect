@@ -11,41 +11,18 @@ const app = express();
 app.use(cors());
 
 // ---- CONFIG ----
-// Prefer env var; else fall back to your Python path
+// Prefer env var; else fall back to system python3
 const PY = process.env.PYTHON_EXE || "python3";
-// Full absolute path to your Python script:
+// Full absolute path to your Python script
 const SCRIPT = path.resolve(__dirname, "newscrapper.py"); // adjust if script is elsewhere
 
-// Quick health checks
-app.get("/api/health", (req, res) => res.json({ ok: true, py: PY, script: SCRIPT }));
+// Quick health check
+app.get("/api/health", (req, res) => {
+  res.json({ ok: true, py: PY, script: SCRIPT });
+});
+
+// Python check (runs `python3 --version`)
 app.get("/api/py-check", (req, res) => {
-  let replied = false;
-  const reply = (status, body) => { if (!replied) { replied = true; res.status(status).json(body); } };
-  const child = spawn(PY, args, {
-  cwd: path.dirname(SCRIPT),
-  windowsHide: true,
-  env: { ...process.env, PYTHONIOENCODING: "utf-8" }   // <- key line
-});
-  let out = "", err = "";
-
-  child.stdout.on("data", d => out += d.toString());
-  child.stderr.on("data", d => err += d.toString());
-  child.on("error", e => reply(500, { ok: false, error: "Failed to start Python", detail: e.message, py: PY }));
-  child.on("close", code => reply(200, { ok: code === 0, code, out: out.trim(), err: err.trim() }));
-});
-
-app.get("/api/search", (req, res) => {
-  const q = (req.query.q || "").trim();
-  if (!q) return res.status(400).json({ ok: false, error: "Missing q" });
-
-  // args for your SerpAPI-only scraper (no debug noise in stdout)
-  const args = [SCRIPT, "--query", q, "--max-products", "8", "--debug", "false"];
-
-  let replied = false;
-  const reply = (status, body) => { if (!replied) { replied = true; res.status(status).json(body); } };
-
-  // Ensure we run in the script’s folder (safe with spaces in path)
-  app.get("/api/py-check", (req, res) => {
   let replied = false;
   const reply = (status, body) => {
     if (!replied) {
@@ -54,7 +31,6 @@ app.get("/api/search", (req, res) => {
     }
   };
 
-  // run `python3 --version`
   const child = spawn(PY, ["--version"], {
     cwd: path.dirname(SCRIPT),
     windowsHide: true,
@@ -73,8 +49,43 @@ app.get("/api/search", (req, res) => {
   );
 });
 
+// Search route (calls your Python script)
+app.get("/api/search", (req, res) => {
+  const q = (req.query.q || "").trim();
+  if (!q) return res.status(400).json({ ok: false, error: "Missing q" });
 
-  // Safety timeout (kill runaway process)
+  const args = [SCRIPT, "--query", q, "--max-products", "8", "--debug", "false"];
+
+  let replied = false;
+  const reply = (status, body) => {
+    if (!replied) {
+      replied = true;
+      res.status(status).json(body);
+    }
+  };
+
+  const child = spawn(PY, args, {
+    cwd: path.dirname(SCRIPT),
+    windowsHide: true,
+    env: { ...process.env, PYTHONIOENCODING: "utf-8" }
+  });
+
+  let out = "", err = "";
+
+  child.stdout.on("data", d => { out += d.toString(); });
+  child.stderr.on("data", d => { err += d.toString(); });
+
+  child.on("error", (e) => {
+    reply(500, {
+      ok: false,
+      error: "Failed to start Python",
+      detail: e.message,
+      py: PY,
+      script: SCRIPT
+    });
+  });
+
+  // Safety timeout
   const killTimer = setTimeout(() => {
     if (!replied) {
       try { child.kill('SIGKILL'); } catch {}
@@ -90,7 +101,7 @@ app.get("/api/search", (req, res) => {
       return reply(500, { ok: false, error: `Python exited with code ${code}`, stderr: err, stdout: out });
     }
 
-    // Our Python prints JSON array last; extract [ ... ] safely
+    // Extract [ ... ] JSON from stdout
     const start = out.indexOf("[");
     const end = out.lastIndexOf("]");
     if (start === -1 || end === -1 || end <= start) {
@@ -110,3 +121,4 @@ app.get("/api/search", (req, res) => {
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => console.log(`API ready → http://localhost:${PORT}`));
+
