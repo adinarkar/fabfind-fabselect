@@ -1,16 +1,18 @@
 // server.js
 // Run: npm i express cors
 // Start: node server.js  (listens on http://localhost:5001)
-
+// scrapperserver.cjs  (CommonJS)
 const express = require("express");
 const cors = require("cors");
 const { spawn } = require("child_process");
 const path = require("path");
+const fs = require("fs");
 
 const app = express();
 app.use(cors());
 
-export const API_URL =
+// If some other file needs this, export it at the bottom via module.exports
+const API_URL =
   process.env.REACT_APP_API_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
   "http://localhost:5001";
@@ -21,13 +23,19 @@ const PY = process.env.PYTHON_EXE || "python3";
 // Full absolute path to your Python script
 const SCRIPT = path.resolve(__dirname, "newscrapper.py"); // adjust if script is elsewhere
 
+// Tiny debug on boot to catch path issues on Render
+console.log("CWD:", process.cwd());
+try { console.log("Files:", fs.readdirSync(".")); } catch {}
+console.log("SCRIPT:", SCRIPT);
+console.log("PY:", PY);
+
 // Quick health check
-app.get("/api/health", (req, res) => {
-  res.json({ ok: true, py: PY, script: SCRIPT });
+app.get("/api/health", (_req, res) => {
+  res.json({ ok: true, py: PY, script: SCRIPT, api: API_URL });
 });
 
 // Python check (runs `python3 --version`)
-app.get("/api/py-check", (req, res) => {
+app.get("/api/py-check", (_req, res) => {
   let replied = false;
   const reply = (status, body) => {
     if (!replied) {
@@ -39,13 +47,12 @@ app.get("/api/py-check", (req, res) => {
   const child = spawn(PY, ["--version"], {
     cwd: path.dirname(SCRIPT),
     windowsHide: true,
-    env: { ...process.env, PYTHONIOENCODING: "utf-8" }
+    env: { ...process.env, PYTHONIOENCODING: "utf-8" },
   });
 
   let out = "", err = "";
-
-  child.stdout.on("data", d => out += d.toString());
-  child.stderr.on("data", d => err += d.toString());
+  child.stdout.on("data", d => (out += d.toString()));
+  child.stderr.on("data", d => (err += d.toString()));
   child.on("error", e =>
     reply(500, { ok: false, error: "Failed to start Python", detail: e.message, py: PY })
   );
@@ -72,11 +79,10 @@ app.get("/api/search", (req, res) => {
   const child = spawn(PY, args, {
     cwd: path.dirname(SCRIPT),
     windowsHide: true,
-    env: { ...process.env, PYTHONIOENCODING: "utf-8" }
+    env: { ...process.env, PYTHONIOENCODING: "utf-8" },
   });
 
   let out = "", err = "";
-
   child.stdout.on("data", d => { out += d.toString(); });
   child.stderr.on("data", d => { err += d.toString(); });
 
@@ -86,17 +92,17 @@ app.get("/api/search", (req, res) => {
       error: "Failed to start Python",
       detail: e.message,
       py: PY,
-      script: SCRIPT
+      script: SCRIPT,
     });
   });
 
   // Safety timeout
   const killTimer = setTimeout(() => {
     if (!replied) {
-      try { child.kill('SIGKILL'); } catch {}
+      try { child.kill("SIGKILL"); } catch {}
       reply(504, { ok: false, error: "Python timed out", stdout: out, stderr: err });
     }
-  }, 60000); // 60s
+  }, 60000);
 
   child.on("close", (code) => {
     clearTimeout(killTimer);
@@ -127,3 +133,5 @@ app.get("/api/search", (req, res) => {
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => console.log(`API ready → http://localhost:${PORT}`));
 
+// Export only if another module requires it
+module.exports = { app, API_URL };
