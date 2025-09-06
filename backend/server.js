@@ -4,6 +4,12 @@ const cors = require("cors");
 
 const app = express();
 app.use(cors());
+const corsOptions = {
+  origin='https://adinarkar.github.io/fabfind-fabselect',
+  methods: ['GET','POST','DELETE'],
+  allowedHeaders:['Content-Type','Authorizarion']
+}
+  app.use(cors(corsOption));
 app.use(express.json());
 
 // Connect to MongoDB
