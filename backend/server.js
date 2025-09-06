@@ -9,7 +9,7 @@ const corsOptions = {
   methods: ['GET','POST','DELETE'],
   allowedHeaders:['Content-Type','Authorizarion']
 }
-  app.use(cors(corsOption));
+  app.use(cors(corsOptions));
 app.use(express.json());
 
 // Connect to MongoDB
