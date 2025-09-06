@@ -14,7 +14,7 @@ export const API = process.env.REACT_APP_API_URL || 'https://fabfind-fabselect-1
   
   useEffect(() => {
     // Fetch all products and filter by category 'Men'
-    fetch("`${API}/api/products`")
+    fetch("${API}/api/products")
       .then((res) => res.json())
       .then((data) => {
         // Assuming your product schema has a `category` field
