@@ -6,7 +6,7 @@ export default function Ethnic(){
 
 
   // src/api.js or wherever you build API urls
-export const API = process.env.REACT_APP_API_URL || 'https://fabfind-fabselect-1-backend.onrender.com';
+export const API = 'https://fabfind-fabselect-1-backend.onrender.com';
 
 
 
