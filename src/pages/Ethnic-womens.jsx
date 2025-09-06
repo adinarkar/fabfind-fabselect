@@ -4,9 +4,17 @@ import { Tabs } from "../reuse/tabs"; // Adjust path based on your project struc
 export default function Ethnic(){
   const [EthnicProducts, setEthnicProducts] = useState([]);
 
+
+  // src/api.js or wherever you build API urls
+export const API = process.env.REACT_APP_API_URL || 'https://fabfind-fabselect-1-backend.onrender.com';
+
+
+
+
+  
   useEffect(() => {
     // Fetch all products and filter by category 'Men'
-    fetch("https://fabfind-fabselect-1-backend.onrender.com")
+    fetch("`${API}/api/products`")
       .then((res) => res.json())
       .then((data) => {
         // Assuming your product schema has a `category` field
