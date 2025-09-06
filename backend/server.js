@@ -5,7 +5,7 @@ const cors = require("cors");
 const app = express();
 app.use(cors());
 const corsOptions = {
-  origin='https://adinarkar.github.io/fabfind-fabselect',
+  origin:'https://adinarkar.github.io/fabfind-fabselect',
   methods: ['GET','POST','DELETE'],
   allowedHeaders:['Content-Type','Authorizarion']
 }
