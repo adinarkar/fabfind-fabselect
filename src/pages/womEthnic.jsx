@@ -19,7 +19,7 @@ export default function WomEth(){
 
   return (
     <div className="container my-4">
-      <h2 className="text-center mb-4">Women's Ethnic</h2>
+      <h2 className="text-center mb-4">Women's Ethnic1</h2>
       
       <Tabs products={menFormalProducts} />
     </div>
