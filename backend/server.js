@@ -26,5 +26,5 @@ app.use("/api/products", productRoutes);
 // Test route
 app.get("/", (req, res) => res.send("Backend suxxess!"));
 
-const PORT = process.env.PORT || 'https://fabfind-fabselect-1-backend.onrender.com';
+const PORT = process.env.PORT || '10000';
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
