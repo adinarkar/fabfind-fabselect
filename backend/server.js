@@ -7,7 +7,7 @@ app.use(cors());
 const corsOptions = {
   origin:'https://adinarkar.github.io',
   methods: ['GET','POST','DELETE'],
-  allowedHeaders:['Content-Type','Authorizarion']
+  allowedHeaders:['Content-Type','Authorization']
 }
   app.use(cors(corsOptions));
 app.use(express.json());
