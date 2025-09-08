@@ -7,7 +7,7 @@ export default function MenBelt(){
 
   useEffect(() => {
  
-    fetch("https://fabfind-fabselect-1-backend.onrender.com")
+    fetch("https://fabfind-fabselect-1-backend.onrender.com/api/products")
       .then((res) => res.json())
       .then((data) => {
         // Assuming your product schema has a `category` field
