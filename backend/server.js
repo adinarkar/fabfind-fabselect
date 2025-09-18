@@ -8,7 +8,7 @@ const app = express();
 
 // ---------- CORS ----------
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || 'https://adinarkar.github.io',
+  origin: "*",
   methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: false, // set true if you need to send cookies/auth from browser
